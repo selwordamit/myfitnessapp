@@ -823,10 +823,18 @@ let currentUser = null;
 let unsubscribe = null;
 let localCache  = { weights: [], measurements: [], goals: {} };
 
+
+
 // ---------- Auth ----------
 function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(e => alert('שגיאה בכניסה: ' + e.message));
+
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => auth.signInWithPopup(provider))
+    .catch(e => {
+      console.error('Login error:', e);
+      alert('שגיאה בכניסה: ' + e.message);
+    });
 }
 function signOutUser() {
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
