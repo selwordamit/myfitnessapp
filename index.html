@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מעקב משקל ומידות</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161920;
+    --surface2: #1e2230;
+    --border: #2a2f40;
+    --accent: #6ee7b7;
+    --accent2: #818cf8;
+    --accent3: #f472b6;
+    --accent4: #fbbf24;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --danger: #f87171;
+    --radius: 16px;
+    --radius-sm: 8px;
+    --header-bg1: #0d0f14;
+    --header-bg2: #161920;
+  }
+
+  body.light {
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --surface2: #e8edf5;
+    --border: #cdd5e0;
+    --accent: #059669;
+    --accent2: #6366f1;
+    --accent3: #db2777;
+    --accent4: #d97706;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --danger: #dc2626;
+    --header-bg1: #e2eff8;
+    --header-bg2: #d0e4f2;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body, header, .card, .stat-box, .tab-btn, .bottom-nav, .nav-item, input, select {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* Theme toggle */
+  .theme-toggle {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 6px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-family: 'Heebo', sans-serif;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-toggle .toggle-icon { font-size: 1rem; transition: transform 0.4s ease; }
+  body.light .theme-toggle .toggle-icon { transform: rotate(180deg); }
+
+  body {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, var(--header-bg1) 0%, var(--header-bg2) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    position: relative;
+  }
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+  header p { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* Nav tabs */
+  nav {
+    display: flex;
+    gap: 4px;
+    padding: 16px 16px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-family: 'Heebo', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    border: 1px solid var(--border);
+    border-bottom: none;
+  }
+  .tab-btn.active {
+    background: var(--surface2);
+    color: var(--accent);
+    border-color: var(--accent);
+    border-bottom-color: var(--surface2);
+  }
+
+  /* Content */
+  main {
+    padding: 0 16px 16px;
+    background: var(--surface2);
+    border-radius: 0 var(--radius) var(--radius) var(--radius);
+    margin: 0 16px;
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+  }
+
+  .tab-content { display: none; padding: 20px 0; }
+  .tab-content.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat-box {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat-box .stat-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-box .stat-val.pink { color: var(--accent3); }
+  .stat-box .stat-val.purple { color: var(--accent2); }
+  .stat-box .stat-val.yellow { color: var(--accent4); }
+  .stat-box .stat-lbl {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Form elements */
+  .form-group { margin-bottom: 14px; }
+  label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  input[type="number"], input[type="date"], select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    padding: 12px 14px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  /* Buttons */
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Heebo', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0d0f14;
+  }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    width: auto;
+  }
+
+  /* Range display */
+  .range-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .range-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent4);
+  }
+  .range-emoji { font-size: 1.4rem; }
+
+  /* List items */
+  .entry-list { display: flex; flex-direction: column; gap: 8px; }
+  .entry-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+  }
+  .entry-item .entry-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .entry-item .entry-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .entry-item .entry-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  /* Weekly summary */
+  .week-card {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+  .week-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .week-title { font-weight: 700; font-size: 0.9rem; }
+  .week-avg {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--accent);
+  }
+  .week-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  /* Progress bar */
+  .prog-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .prog-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.5s ease;
+  }
+
+  /* Score stars */
+  .score-dots {
+    display: flex;
+    gap: 3px;
+    margin-top: 4px;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .dot.filled { background: var(--accent4); }
+
+  /* Measurements grid */
+  .meas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .meas-item {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    border: 1px solid var(--border);
+  }
+  .meas-item .meas-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .meas-item .meas-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--accent3);
+    font-weight: 700;
+  }
+
+  /* Charts */
+  .chart-wrap {
+    width: 100%;
+    height: 180px;
+    position: relative;
+    margin-top: 8px;
+  }
+  canvas { width: 100% !important; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.85rem; line-height: 1.6; }
+
+  /* Section divider */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* Success toast */
+  #toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent);
+    color: #0d0f14;
+    padding: 12px 24px;
+    border-radius: 99px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0;
+    z-index: 200;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px;
+    cursor: pointer;
+    transition: color 0.2s;
+    color: var(--text-muted);
+    font-size: 0.65rem;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    font-family: 'Heebo', sans-serif;
+  }
+  .nav-item .nav-icon { font-size: 1.3rem; }
+  .nav-item.active { color: var(--accent); }
+
+  /* Goal section */
+  .goal-banner {
+    background: linear-gradient(135deg, rgba(110,231,183,0.1), rgba(129,140,248,0.1));
+    border: 1px solid rgba(110,231,183,0.3);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .goal-banner .goal-text {
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .goal-banner .goal-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Chart range & meas toggle buttons */
+  .range-btn, .meas-btn {
+    padding: 6px 14px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-family: 'Heebo', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .range-btn.active, .meas-btn.active {
+    background: var(--accent);
+    color: #0d0f14;
+    border-color: var(--accent);
+  }
+  .meas-btn[data-key="chest"].active { background: var(--accent2); border-color: var(--accent2); }
+  .meas-btn[data-key="armR"].active  { background: var(--accent3); border-color: var(--accent3); }
+  .meas-btn[data-key="armL"].active  { background: var(--accent4); border-color: var(--accent4); }
+
+  /* Insight box */
+  .chart-insight {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(110,231,183,0.07);
+    border-right: 3px solid var(--accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .chart-insight:empty { display: none; }
+  .chart-insight b { color: var(--accent); }
+  .chart-insight.warn { background: rgba(251,191,36,0.07); border-color: var(--accent4); }
+  .chart-insight.warn b { color: var(--accent4); }
+
+  @media (min-width: 640px) {
+    body { max-width: 480px; margin: 0 auto; }
+    .bottom-nav { max-width: 480px; left: 50%; transform: translateX(-50%); }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px;gap:24px;">
+  <div style="text-align:center">
+    <div style="font-size:3rem;margin-bottom:8px">💪</div>
+    <h2 style="font-size:1.6rem;font-weight:900;color:var(--accent);margin-bottom:6px">המסע שלי</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem">מעקב משקל, מידות וציון יומי</p>
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:100%;max-width:320px;text-align:center">
+    <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:20px;line-height:1.6">
+      כניסה עם חשבון Google שומרת את הנתונים שלך בענן —<br>
+      נגישים מכל מכשיר, רק לך.
+    </p>
+    <button onclick="signInWithGoogle()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:10px;font-family:'Heebo',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;">
+      <img src="https://www.google.com/favicon.ico" width="18" height="18" alt="Google">
+      כניסה עם Google
+    </button>
+  </div>
+  <p style="font-size:0.72rem;color:var(--text-muted);text-align:center;max-width:280px;line-height:1.6">
+    כל משתמש רואה רק את הנתונים שלו.<br>אפשר לשתף את הקובץ עם חברים — לכל אחד חשבון נפרד.
+  </p>
+</div>
+
+<!-- APP WRAPPER -->
+<div id="app-wrap" style="display:none">
+
+<!-- User bar -->
+<div id="user-bar" style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);font-size:0.78rem;">
+  <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted)">
+    <img id="user-avatar" src="" alt="" style="width:24px;height:24px;border-radius:50%;display:none">
+    <span id="user-name"></span>
+  </div>
+  <button onclick="signOutUser()" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-family:'Heebo',sans-serif;font-size:0.72rem;padding:4px 10px;cursor:pointer;">יציאה</button>
+</div>
+
+<header>
+  <h1>💪 המסע שלי</h1>
+  <p id="header-date">טוען...</p>
+  <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">
+    <span class="toggle-icon">🌙</span>
+    <span id="theme-label">מצב כהה</span>
+  </button>
+</header>
+
+<nav id="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('today')">היום</button>
+  <button class="tab-btn" onclick="switchTab('weekly')">שבועי</button>
+  <button class="tab-btn" onclick="switchTab('measurements')">מידות</button>
+  <button class="tab-btn" onclick="switchTab('charts')">גרפים</button>
+  <button class="tab-btn" onclick="switchTab('history')">היסטוריה</button>
+  <button class="tab-btn" onclick="switchTab('goals')">יעדים</button>
+</nav>
+
+<main>
+
+  <!-- TAB: TODAY -->
+  <div class="tab-content active" id="tab-today">
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="stat-current">--</div>
+        <div class="stat-lbl">משקל היום</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val pink" id="stat-diff">--</div>
+        <div class="stat-lbl">שינוי שבועי</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val yellow" id="stat-score-avg">--</div>
+        <div class="stat-lbl">ציון שבועי</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚖️ הוסף משקל</div>
+      <div class="form-group">
+        <label>תאריך</label>
+        <input type="date" id="weight-date">
+      </div>
+      <div class="form-group">
+        <label>משקל (ק"ג)</label>
+        <input type="number" id="weight-input" step="0.1" min="30" max="300" placeholder="למשל: 78.5">
+      </div>
+      <div class="form-group">
+        <div class="range-display">
+          <label style="margin:0">📋 כמה "על התפריט" הייתי?</label>
+          <span class="range-val" id="score-val">5</span>
+        </div>
+        <input type="range" id="score-input" min="1" max="10" value="5" oninput="updateScore(this.value)">
+        <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);margin-top:4px">
+          <span>😞 1</span><span>😐 5</span><span>🔥 10</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addWeight()">שמור היום ✓</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 משקל — 14 ימים אחרונים</div>
+      <div class="chart-wrap">
+        <canvas id="weight-chart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB: WEEKLY -->
+  <div class="tab-content" id="tab-weekly">
+    <div class="card-title" style="padding-top:4px">📅 סיכומים שבועיים</div>
+    <div id="weekly-list">
+      <div class="empty-state">
+        <div class="empty-icon">📅</div>
+        <p>עוד אין נתונים שבועיים.<br>הוסף משקל לפחות ל-2 ימים שונים.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: MEASUREMENTS -->
+  <div class="tab-content" id="tab-measurements">
+
+    <div class="card">
+      <div class="card-title">📏 הוסף מידות</div>
+      <div class="form-group">
+        <label>תאריך מדידה</label>
+        <input type="date" id="meas-date">
+      </div>
+      <div class="meas-grid" style="margin-bottom:14px">
+        <div class="form-group" style="margin:0">
+          <label>היקף מותניים (ס"מ)</label>
+          <input type="number" id="meas-waist" step="0.5" min="40" max="200" placeholder="--">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>היקף חזה (ס"מ)</label>
+          <input type="number" id="meas-chest" step="0.5" min="40" max="200" placeholder="--">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>היקף יד ימין (ס"מ)</label>
+          <input type="number" id="meas-arm-r" step="0.5" min="15" max="80" placeholder="--">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>היקף יד שמאל (ס"מ)</label>
+          <input type="number" id="meas-arm-l" step="0.5" min="15" max="80" placeholder="--">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addMeasurement()">שמור מידות ✓</button>
+    </div>
+
+    <div class="card-title">📈 מדידות אחרונות</div>
+    <div id="measurements-list">
+      <div class="empty-state">
+        <div class="empty-icon">📏</div>
+        <p>עוד לא הוספת מידות.<br>מומלץ למדוד פעם בשבועיים.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: CHARTS -->
+  <div class="tab-content" id="tab-charts">
+
+    <!-- Range selector -->
+    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="range-btn" onclick="setChartRange(7, this)">שבוע</button>
+      <button class="range-btn active" onclick="setChartRange(30, this)">חודש</button>
+      <button class="range-btn" onclick="setChartRange(90, this)">3 חודשים</button>
+      <button class="range-btn" onclick="setChartRange(180, this)">חצי שנה</button>
+      <button class="range-btn" onclick="setChartRange(0, this)">הכל</button>
+    </div>
+
+    <!-- Weight trend chart -->
+    <div class="card">
+      <div class="card-title">📉 מגמת משקל לאורך זמן</div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="trend-chart"></canvas>
+      </div>
+      <div id="trend-insight" class="chart-insight"></div>
+    </div>
+
+    <!-- Day of week analysis -->
+    <div class="card">
+      <div class="card-title">📅 ממוצע משקל לפי יום בשבוע</div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px">אדום = ימים קשים יחסית — שים עליהם דגש 🎯</p>
+      <div class="chart-wrap" style="height:210px">
+        <canvas id="dayofweek-chart"></canvas>
+      </div>
+      <div id="hardday-insight" class="chart-insight"></div>
+    </div>
+
+    <!-- Measurements trend — all active by default -->
+    <div class="card">
+      <div class="card-title">📏 מגמת מידות לאורך זמן</div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap" id="meas-toggle-btns">
+        <button class="meas-btn active" data-key="waist" onclick="toggleMeasLine('waist',this)">מותניים</button>
+        <button class="meas-btn active" data-key="chest" onclick="toggleMeasLine('chest',this)">חזה</button>
+        <button class="meas-btn active" data-key="armR" onclick="toggleMeasLine('armR',this)">יד ימין</button>
+        <button class="meas-btn active" data-key="armL" onclick="toggleMeasLine('armL',this)">יד שמאל</button>
+      </div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="meas-chart"></canvas>
+      </div>
+      <div id="meas-insight" class="chart-insight"></div>
+    </div>
+
+    <!-- Score chart: daily line + weekly avg bars -->
+    <div class="card">
+      <div class="card-title">🔥 ציון "על התפריט" — יומי ושבועי</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;font-size:0.72rem;color:var(--text-muted);align-items:center;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:20px;height:3px;background:var(--accent4);display:inline-block;border-radius:2px"></span>ציון יומי</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:14px;background:var(--accent2);opacity:.7;display:inline-block;border-radius:3px"></span>ממוצע שבועי</span>
+      </div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="score-chart"></canvas>
+      </div>
+      <div id="score-insight" class="chart-insight"></div>
+    </div>
+
+  </div>
+
+  <!-- TAB: HISTORY -->
+  <div class="tab-content" id="tab-history">
+    <div class="card-title" style="padding-top:4px">📋 כל הרשומות</div>
+    <div id="history-list">
+      <div class="empty-state">
+        <div class="empty-icon">🗂️</div>
+        <p>עוד אין רשומות.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: GOALS -->
+  <div class="tab-content" id="tab-goals">
+
+    <div class="card">
+      <div class="card-title">🎯 הגדרת יעדים</div>
+      <div class="form-group">
+        <label>משקל התחלתי (ק"ג)</label>
+        <input type="number" id="goal-start" step="0.1" placeholder="--">
+      </div>
+      <div class="form-group">
+        <label>משקל יעד (ק"ג)</label>
+        <input type="number" id="goal-target" step="0.1" placeholder="--">
+      </div>
+      <button class="btn btn-primary" onclick="saveGoals()">שמור יעדים ✓</button>
+    </div>
+
+    <div id="goal-progress-section" style="display:none">
+      <div class="goal-banner">
+        <div class="goal-text" id="goal-banner-text">--</div>
+        <div class="goal-sub" id="goal-banner-sub">--</div>
+      </div>
+      <div class="card">
+        <div class="card-title">📉 התקדמות</div>
+        <div id="goal-details"></div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <div class="card">
+      <div class="card-title">🗑️ אזור מסוכן</div>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">מחיקת כל הנתונים לא ניתנת לביטול</p>
+      <button class="btn btn-danger" onclick="clearAll()">מחק את כל הנתונים</button>
+    </div>
+
+  </div>
+
+</main>
+
+<div id="toast">✓ נשמר בהצלחה!</div>
+
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="switchTab('today')">
+    <span class="nav-icon">⚖️</span>היום
+  </button>
+  <button class="nav-item" onclick="switchTab('weekly')">
+    <span class="nav-icon">📅</span>שבועי
+  </button>
+  <button class="nav-item" onclick="switchTab('measurements')">
+    <span class="nav-icon">📏</span>מידות
+  </button>
+  <button class="nav-item" onclick="switchTab('charts')">
+    <span class="nav-icon">📈</span>גרפים
+  </button>
+  <button class="nav-item" onclick="switchTab('goals')">
+    <span class="nav-icon">🎯</span>יעדים
+  </button>
+</nav>
+
+<!-- Firebase SDKs -->
+<!-- Firebase compat SDKs (גלובליים — ללא import/export, עובדים עם onclick) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// ============================================================
+//  🔧 הדבק כאן את ה-firebaseConfig שלך מ-Firebase Console
+// ============================================================
+const firebaseConfig = {
+  apiKey:            "AIzaSyCm8pP02p2sJ1dDfNYKpP6IBZhopQP-sjY",
+  authDomain:        "fitness-tracker-amit.firebaseapp.com",
+  projectId:         "fitness-tracker-amit",
+  storageBucket:     "fitness-tracker-amit.firebasestorage.app",
+  messagingSenderId: "400048635012",
+  appId:             "1:400048635012:web:f87a37ab71cd2195fc56d1"
+};
+// ============================================================
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+let currentUser = null;
+let unsubscribe = null;
+let localCache  = { weights: [], measurements: [], goals: {} };
+
+// ---------- Auth ----------
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(e => alert('שגיאה בכניסה: ' + e.message));
+}
+function signOutUser() {
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+  if (user) {
+    showApp(user);
+    subscribeToUserData(user.uid);
+  } else {
+    showLogin();
+  }
+});
+
+function showLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app-wrap').style.display    = 'none';
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+}
+function showApp(user) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-wrap').style.display    = 'block';
+  document.getElementById('user-name').textContent = user.displayName || user.email;
+  const av = document.getElementById('user-avatar');
+  av.src = user.photoURL || '';
+  av.style.display = user.photoURL ? 'block' : 'none';
+}
+
+// ---------- Firestore real-time listener ----------
+function subscribeToUserData(uid) {
+  if (unsubscribe) unsubscribe();
+  unsubscribe = db.collection('users').doc(uid).onSnapshot(snap => {
+    if (snap.exists) {
+      const d = snap.data();
+      localCache = {
+        weights:      d.weights      || [],
+        measurements: d.measurements || [],
+        goals:        d.goals        || {}
+      };
+    } else {
+      localCache = { weights: [], measurements: [], goals: {} };
+    }
+    render();
+  });
+}
+
+// ---------- Data API ----------
+function getData() { return localCache; }
+
+async function saveData(key, value) {
+  if (!currentUser) return;
+  localCache[key] = value;
+  try {
+    await db.collection('users').doc(currentUser.uid).set(
+      { [key]: value }, { merge: true }
+    );
+  } catch(e) { console.error('Save error:', e); showToast('⚠️ שגיאה בשמירה'); }
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+
+// =================== UTILS ===================
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+function formatDate(d) {
+  const [y, m, day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+function weekOf(dateStr) {
+  const d = new Date(dateStr);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const mon = new Date(d.setDate(diff));
+  return mon.toISOString().split('T')[0];
+}
+function showToast(msg = '✓ נשמר בהצלחה!') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function scoreEmoji(s) {
+  if (s >= 9) return '🔥';
+  if (s >= 7) return '😊';
+  if (s >= 5) return '😐';
+  if (s >= 3) return '😕';
+  return '😞';
+}
+
+// =================== TABS ===================
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const tabs = ['today','weekly','measurements','charts','history','goals'];
+  const idx = tabs.indexOf(name);
+  document.querySelectorAll('.tab-btn')[idx]?.classList.add('active');
+  // bottom nav: today/weekly/measurements/charts/goals = indices 0-4 in nav
+  const navMap = {today:0, weekly:1, measurements:2, charts:3, goals:4};
+  if (navMap[name] !== undefined) document.querySelectorAll('.nav-item')[navMap[name]]?.classList.add('active');
+  render();
+}
+
+// =================== WEIGHT ===================
+function updateScore(v) {
+  document.getElementById('score-val').textContent = v;
+}
+
+function addWeight() {
+  const date = document.getElementById('weight-date').value;
+  const val = parseFloat(document.getElementById('weight-input').value);
+  const score = parseInt(document.getElementById('score-input').value);
+  if (!date || isNaN(val) || val < 20 || val > 500) {
+    alert('אנא הזן תאריך ומשקל תקין'); return;
+  }
+  const {weights} = getData();
+  const existing = weights.findIndex(w => w.date === date);
+  if (existing >= 0) {
+    if (!confirm('כבר קיים ערך לתאריך זה. להחליף?')) return;
+    weights[existing] = {date, weight: val, score};
+  } else {
+    weights.push({date, weight: val, score});
+  }
+  weights.sort((a,b) => a.date.localeCompare(b.date));
+  saveData('weights', weights);
+  showToast('⚖️ משקל נשמר!');
+  render();
+}
+
+// =================== MEASUREMENTS ===================
+function addMeasurement() {
+  const date = document.getElementById('meas-date').value;
+  const waist = parseFloat(document.getElementById('meas-waist').value) || null;
+  const chest = parseFloat(document.getElementById('meas-chest').value) || null;
+  const armR = parseFloat(document.getElementById('meas-arm-r').value) || null;
+  const armL = parseFloat(document.getElementById('meas-arm-l').value) || null;
+  if (!date) { alert('אנא בחר תאריך'); return; }
+  if (!waist && !chest && !armR && !armL) { alert('אנא הזן לפחות מידה אחת'); return; }
+  const {measurements} = getData();
+  const existing = measurements.findIndex(m => m.date === date);
+  const entry = {date, waist, chest, armR, armL};
+  if (existing >= 0) {
+    if (!confirm('כבר קיים מדידה לתאריך זה. להחליף?')) return;
+    measurements[existing] = entry;
+  } else {
+    measurements.push(entry);
+  }
+  measurements.sort((a,b) => a.date.localeCompare(b.date));
+  saveData('measurements', measurements);
+  showToast('📏 מידות נשמרו!');
+  render();
+}
+
+// =================== GOALS ===================
+function saveGoals() {
+  const start = parseFloat(document.getElementById('goal-start').value);
+  const target = parseFloat(document.getElementById('goal-target').value);
+  if (isNaN(start) || isNaN(target)) { alert('אנא הזן משקל התחלתי ויעד'); return; }
+  saveData('goals', {start, target});
+  showToast('🎯 יעדים נשמרו!');
+  renderGoals();
+}
+
+function clearAll() {
+  if (confirm('למחוק את כל הנתונים לצמיתות? פעולה זו לא ניתנת לביטול.')) {
+    saveData('weights', []);
+    saveData('measurements', []);
+    saveData('goals', {});
+    showToast('🗑️ כל הנתונים נמחקו');
+    render();
+  }
+}
+
+// =================== RENDER ===================
+let weightChart = null;
+
+function render() {
+  const data = getData();
+
+  // Header date
+  const now = new Date();
+  const days = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  const months = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  document.getElementById('header-date').textContent = `יום ${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+  // Set default dates
+  document.getElementById('weight-date').value = document.getElementById('weight-date').value || today();
+  document.getElementById('meas-date').value = document.getElementById('meas-date').value || today();
+
+  renderStats(data);
+  renderWeightChart(data);
+  renderWeekly(data);
+  renderMeasurements(data);
+  renderHistory(data);
+  renderGoals(data);
+  renderCharts(data);
+}
+
+function renderStats(data) {
+  const {weights} = data;
+  if (!weights.length) return;
+  const last = weights[weights.length - 1];
+  document.getElementById('stat-current').textContent = last.weight.toFixed(1);
+
+  // Weekly diff
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekAgoStr = weekAgo.toISOString().split('T')[0];
+  const weekOld = weights.filter(w => w.date <= weekAgoStr);
+  if (weekOld.length) {
+    const oldW = weekOld[weekOld.length-1].weight;
+    const diff = last.weight - oldW;
+    const el = document.getElementById('stat-diff');
+    el.textContent = (diff > 0 ? '+' : '') + diff.toFixed(1);
+    el.style.color = diff <= 0 ? 'var(--accent)' : 'var(--danger)';
+  }
+
+  // Weekly score avg
+  const weekStart = weekOf(today());
+  const thisWeek = weights.filter(w => weekOf(w.date) === weekStart && w.score);
+  if (thisWeek.length) {
+    const avg = thisWeek.reduce((s,w) => s + w.score, 0) / thisWeek.length;
+    document.getElementById('stat-score-avg').textContent = avg.toFixed(1);
+  }
+}
+
+function renderWeightChart(data) {
+  const {weights} = data;
+  const ctx = document.getElementById('weight-chart');
+  if (!ctx) return;
+  const last14 = weights.slice(-14);
+  if (last14.length < 2) {
+    ctx.style.display = 'none'; return;
+  }
+  ctx.style.display = 'block';
+
+  const isLight = document.body.classList.contains('light');
+  const accentColor = isLight ? '#059669' : '#6ee7b7';
+  const gridColor = isLight ? '#cdd5e0' : '#2a2f40';
+  const tickColor = '#64748b';
+  const fillColor = isLight ? 'rgba(5,150,105,0.08)' : 'rgba(110,231,183,0.08)';
+
+  const labels = last14.map(w => formatDate(w.date));
+  const vals = last14.map(w => w.weight);
+  const min = Math.min(...vals) - 0.5;
+  const max = Math.max(...vals) + 0.5;
+
+  if (weightChart) weightChart.destroy();
+  weightChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: vals,
+        borderColor: accentColor,
+        backgroundColor: fillColor,
+        borderWidth: 2.5,
+        pointBackgroundColor: accentColor,
+        pointRadius: 4,
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: { color: tickColor, font: { size: 9 }, maxRotation: 45 },
+          grid: { color: gridColor }
+        },
+        y: {
+          min, max,
+          ticks: { color: tickColor, font: { family: 'Space Mono', size: 10 } },
+          grid: { color: gridColor }
+        }
+      }
+    }
+  });
+}
+
+function renderWeekly(data) {
+  const {weights} = data;
+  const container = document.getElementById('weekly-list');
+  if (!weights.length) return;
+
+  // Group by week
+  const weeks = {};
+  weights.forEach(w => {
+    const wk = weekOf(w.date);
+    if (!weeks[wk]) weeks[wk] = [];
+    weeks[wk].push(w);
+  });
+
+  const weekKeys = Object.keys(weeks).sort().reverse();
+  if (weekKeys.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>עוד אין נתונים שבועיים.</p></div>';
+    return;
+  }
+
+  container.innerHTML = weekKeys.map(wk => {
+    const entries = weeks[wk];
+    const avgWeight = entries.reduce((s,e) => s + e.weight, 0) / entries.length;
+    const scoredEntries = entries.filter(e => e.score);
+    const avgScore = scoredEntries.length ? scoredEntries.reduce((s,e) => s + e.score, 0) / scoredEntries.length : null;
+
+    const wkEnd = new Date(wk); wkEnd.setDate(wkEnd.getDate() + 6);
+    const wkStr = `${formatDate(wk)} — ${formatDate(wkEnd.toISOString().split('T')[0])}`;
+
+    const dots = avgScore ? Array.from({length:10}, (_,i) =>
+      `<div class="dot ${i < Math.round(avgScore) ? 'filled' : ''}"></div>`
+    ).join('') : '';
+
+    return `<div class="week-card">
+      <div class="week-header">
+        <div>
+          <div class="week-title">${wkStr}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted)">${entries.length} מדידות</div>
+        </div>
+        <div class="week-avg">${avgWeight.toFixed(1)} ק"ג</div>
+      </div>
+      ${avgScore ? `
+        <div class="week-row">
+          <span>ציון שבועי: ${scoreEmoji(avgScore)} ${avgScore.toFixed(1)}/10</span>
+        </div>
+        <div class="score-dots">${dots}</div>
+      ` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderMeasurements(data) {
+  const {measurements} = data;
+  const container = document.getElementById('measurements-list');
+  if (!measurements.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📏</div><p>עוד לא הוספת מידות.<br>מומלץ למדוד פעם בשבועיים.</p></div>';
+    return;
+  }
+  const sorted = [...measurements].reverse();
+  container.innerHTML = sorted.map(m => `
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-weight:700;font-size:0.9rem">${formatDate(m.date)}</div>
+      </div>
+      <div class="meas-grid">
+        ${m.waist ? `<div class="meas-item"><div class="meas-label">⭕ מותניים</div><div class="meas-val">${m.waist} ס"מ</div></div>` : ''}
+        ${m.chest ? `<div class="meas-item"><div class="meas-label">💪 חזה</div><div class="meas-val">${m.chest} ס"מ</div></div>` : ''}
+        ${m.armR ? `<div class="meas-item"><div class="meas-label">💪 יד ימין</div><div class="meas-val">${m.armR} ס"מ</div></div>` : ''}
+        ${m.armL ? `<div class="meas-item"><div class="meas-label">💪 יד שמאל</div><div class="meas-val">${m.armL} ס"מ</div></div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderHistory(data) {
+  const {weights} = data;
+  const container = document.getElementById('history-list');
+  if (!weights.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🗂️</div><p>עוד אין רשומות.</p></div>';
+    return;
+  }
+  const sorted = [...weights].reverse();
+  container.innerHTML = '<div class="entry-list">' + sorted.map(w => `
+    <div class="entry-item">
+      <div class="entry-meta">
+        <div style="font-weight:600;font-size:0.88rem">${formatDate(w.date)}</div>
+        ${w.score ? `<div style="font-size:0.75rem;color:var(--text-muted)">${scoreEmoji(w.score)} ציון: ${w.score}/10</div>` : ''}
+      </div>
+      <div class="entry-val">${w.weight.toFixed(1)} ק"ג</div>
+    </div>
+  `).join('') + '</div>';
+}
+
+function renderGoals(data) {
+  if (!data) data = getData();
+  const {goals, weights} = data;
+
+  // Fill inputs
+  if (goals.start) document.getElementById('goal-start').value = goals.start;
+  if (goals.target) document.getElementById('goal-target').value = goals.target;
+
+  const section = document.getElementById('goal-progress-section');
+  if (!goals.start || !goals.target || !weights.length) {
+    section.style.display = 'none'; return;
+  }
+  section.style.display = 'block';
+
+  const current = weights[weights.length-1].weight;
+  const total = goals.start - goals.target;
+  const done = goals.start - current;
+  const pct = total > 0 ? Math.min(100, Math.max(0, (done / total) * 100)) : 0;
+
+  document.getElementById('goal-banner-text').textContent =
+    `${done.toFixed(1)} ק"ג ירדת מתוך ${total.toFixed(1)} ק"ג`;
+  document.getElementById('goal-banner-sub').textContent =
+    `נשאר ${Math.max(0, (current - goals.target)).toFixed(1)} ק"ג ליעד ${scoreEmoji(Math.round(pct/10))}`;
+
+  document.getElementById('goal-details').innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:0.8rem">
+      <span style="color:var(--text-muted)">התחלה: <b style="color:var(--text)">${goals.start} ק"ג</b></span>
+      <span style="color:var(--text-muted)">עכשיו: <b style="color:var(--accent)">${current.toFixed(1)} ק"ג</b></span>
+      <span style="color:var(--text-muted)">יעד: <b style="color:var(--accent3)">${goals.target} ק"ג</b></span>
+    </div>
+    <div class="prog-bar">
+      <div class="prog-fill" style="width:${pct}%"></div>
+    </div>
+    <div style="text-align:left;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--accent2);margin-top:6px">${pct.toFixed(0)}%</div>
+  `;
+}
+
+// =================== CHARTS STATE ===================
+let chartRange = 30;
+let activeMeasLines = { waist: true, chest: true, armR: true, armL: true };
+let trendChartInst = null, dowChartInst = null, measChartInst = null, scoreChartInst = null;
+
+function setChartRange(days, btn) {
+  chartRange = days;
+  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCharts(getData());
+}
+
+function toggleMeasLine(key, btn) {
+  activeMeasLines[key] = !activeMeasLines[key];
+  btn.classList.toggle('active', activeMeasLines[key]);
+  renderMeasChart(getData());
+}
+
+function getColors() {
+  const light = document.body.classList.contains('light');
+  return {
+    accent:  light ? '#059669' : '#6ee7b7',
+    accent2: light ? '#6366f1' : '#818cf8',
+    accent3: light ? '#db2777' : '#f472b6',
+    accent4: light ? '#d97706' : '#fbbf24',
+    danger:  light ? '#dc2626' : '#f87171',
+    grid:    light ? '#cdd5e0' : '#2a2f40',
+    tick:    '#64748b',
+    bg:      light ? '#f0f4f8' : '#0d0f14',
+  };
+}
+
+function filterByRange(weights) {
+  if (!chartRange) return weights;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - chartRange);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+  return weights.filter(w => w.date >= cutoffStr);
+}
+
+function renderCharts(data) {
+  if (!document.getElementById('tab-charts').classList.contains('active')) return;
+  renderTrendChart(data);
+  renderDowChart(data);
+  renderMeasChart(data);
+  renderScoreChart(data);
+}
+
+// ---- Chart 1: Weight trend ----
+function renderTrendChart(data) {
+  const c = getColors();
+  const filtered = filterByRange(data.weights);
+  const ctx = document.getElementById('trend-chart');
+  if (!ctx) return;
+
+  if (filtered.length < 2) {
+    ctx.closest('.card').querySelector('#trend-insight').textContent = 'צריך לפחות 2 מדידות בטווח הנבחר';
+    if (trendChartInst) { trendChartInst.destroy(); trendChartInst = null; }
+    return;
+  }
+
+  const labels = filtered.map(w => formatDate(w.date));
+  const vals   = filtered.map(w => w.weight);
+
+  // Trendline (linear regression)
+  const n = vals.length;
+  const sumX = vals.reduce((_,__,i) => _ + i, 0);
+  const sumY = vals.reduce((s,v) => s + v, 0);
+  const sumXY = vals.reduce((s,v,i) => s + i*v, 0);
+  const sumX2 = vals.reduce((s,_,i) => s + i*i, 0);
+  const slope = (n*sumXY - sumX*sumY) / (n*sumX2 - sumX*sumX);
+  const intercept = (sumY - slope*sumX) / n;
+  const trendVals = vals.map((_,i) => +(intercept + slope*i).toFixed(2));
+
+  const minY = Math.min(...vals, ...trendVals) - 0.5;
+  const maxY = Math.max(...vals, ...trendVals) + 0.5;
+
+  if (trendChartInst) trendChartInst.destroy();
+  trendChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'משקל',
+          data: vals,
+          borderColor: c.accent,
+          backgroundColor: c.accent + '15',
+          borderWidth: 2,
+          pointRadius: vals.length > 30 ? 2 : 4,
+          pointBackgroundColor: c.accent,
+          tension: 0.3,
+          fill: true,
+          order: 1
+        },
+        {
+          label: 'מגמה',
+          data: trendVals,
+          borderColor: c.accent4,
+          borderWidth: 2,
+          borderDash: [6, 4],
+          pointRadius: 0,
+          tension: 0,
+          fill: false,
+          order: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: c.tick, font: { family: 'Heebo', size: 11 }, boxWidth: 16 }
+        }
+      },
+      scales: {
+        x: { ticks: { color: c.tick, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 10 }, grid: { color: c.grid } },
+        y: { min: minY, max: maxY, ticks: { color: c.tick, font: { family: 'Space Mono', size: 10 } }, grid: { color: c.grid } }
+      }
+    }
+  });
+
+  // Insight
+  const totalChange = vals[vals.length-1] - vals[0];
+  const perWeek = (slope * 7).toFixed(2);
+  const insightEl = document.getElementById('trend-insight');
+  const dir = totalChange < 0 ? '📉' : '📈';
+  insightEl.className = 'chart-insight' + (totalChange > 0 ? ' warn' : '');
+  insightEl.innerHTML = `${dir} שינוי כולל בטווח: <b>${totalChange > 0 ? '+' : ''}${totalChange.toFixed(1)} ק"ג</b> | קצב: <b>${perWeek > 0 ? '+' : ''}${perWeek} ק"ג/שבוע</b>`;
+}
+
+// ---- Chart 2: Day-of-week avg weight ----
+function renderDowChart(data) {
+  const c = getColors();
+  const filtered = filterByRange(data.weights);
+  const ctx = document.getElementById('dayofweek-chart');
+  if (!ctx) return;
+
+  const dayNames = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  const buckets = Array.from({length:7}, () => []);
+  filtered.forEach(w => {
+    const d = new Date(w.date).getDay();
+    buckets[d].push(w.weight);
+  });
+  const avgs = buckets.map(b => b.length ? +(b.reduce((s,v)=>s+v,0)/b.length).toFixed(2) : null);
+  const validAvgs = avgs.filter(v => v !== null);
+
+  if (validAvgs.length < 2) {
+    document.getElementById('hardday-insight').textContent = 'צריך נתונים ממספר ימים שונים בשבוע';
+    if (dowChartInst) { dowChartInst.destroy(); dowChartInst = null; }
+    return;
+  }
+
+  const globalAvg = validAvgs.reduce((s,v)=>s+v,0)/validAvgs.length;
+  const bgColors = avgs.map(v => v === null ? c.grid :
+    v > globalAvg + 0.3 ? c.danger + 'cc' :
+    v < globalAvg - 0.3 ? c.accent + 'cc' : c.accent2 + 'cc'
+  );
+
+  if (dowChartInst) dowChartInst.destroy();
+  dowChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: dayNames,
+      datasets: [{
+        label: 'ממוצע משקל',
+        data: avgs,
+        backgroundColor: bgColors,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: c.tick, font: { family: 'Heebo', size: 10 } }, grid: { display: false } },
+        y: {
+          min: Math.min(...validAvgs) - 1,
+          max: Math.max(...validAvgs) + 1,
+          ticks: { color: c.tick, font: { family: 'Space Mono', size: 10 } },
+          grid: { color: c.grid }
+        }
+      }
+    }
+  });
+
+  // Find hardest day
+  const maxAvg = Math.max(...validAvgs);
+  const hardDayIdx = avgs.indexOf(maxAvg);
+  const minAvg = Math.min(...validAvgs);
+  const easyDayIdx = avgs.indexOf(minAvg);
+  const insightEl = document.getElementById('hardday-insight');
+  insightEl.className = 'chart-insight warn';
+  insightEl.innerHTML = `⚠️ יום <b>${dayNames[hardDayIdx]}</b> — ממוצע המשקל הגבוה ביותר (${maxAvg.toFixed(1)}). שים עליו דגש! ✅ יום <b>${dayNames[easyDayIdx]}</b> — הכי קל לך (${minAvg.toFixed(1)})`;
+}
+
+// ---- Chart 3: Measurements trend ----
+function renderMeasChart(data) {
+  const c = getColors();
+  const ctx = document.getElementById('meas-chart');
+  if (!ctx) return;
+  const meas = data.measurements;
+
+  if (meas.length < 2) {
+    document.getElementById('meas-insight').textContent = 'צריך לפחות 2 מדידות מידות';
+    if (measChartInst) { measChartInst.destroy(); measChartInst = null; }
+    return;
+  }
+
+  const measConfig = {
+    waist: { label: 'מותניים', color: c.accent },
+    chest: { label: 'חזה',     color: c.accent2 },
+    armR:  { label: 'יד ימין', color: c.accent3 },
+    armL:  { label: 'יד שמאל', color: c.accent4 },
+  };
+
+  const labels = meas.map(m => formatDate(m.date));
+  const datasets = Object.entries(measConfig)
+    .filter(([key]) => activeMeasLines[key])
+    .map(([key, cfg]) => ({
+      label: cfg.label,
+      data: meas.map(m => m[key] || null),
+      borderColor: cfg.color,
+      backgroundColor: cfg.color + '15',
+      borderWidth: 2.5,
+      pointRadius: 5,
+      pointBackgroundColor: cfg.color,
+      tension: 0.3,
+      spanGaps: true,
+    }));
+
+  if (!datasets.length) return;
+
+  if (measChartInst) measChartInst.destroy();
+  measChartInst = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, labels: { color: c.tick, font: { family: 'Heebo', size: 11 }, boxWidth: 14 } }
+      },
+      scales: {
+        x: { ticks: { color: c.tick, font: { size: 9 }, maxRotation: 45 }, grid: { color: c.grid } },
+        y: { ticks: { color: c.tick, font: { family: 'Space Mono', size: 10 } }, grid: { color: c.grid } }
+      }
+    }
+  });
+
+  // Insight: show change per active line
+  const insights = Object.entries(measConfig)
+    .filter(([key]) => activeMeasLines[key])
+    .map(([key, cfg]) => {
+      const pts = meas.map(m => m[key]).filter(Boolean);
+      if (pts.length < 2) return null;
+      const diff = pts[pts.length-1] - pts[0];
+      return `${cfg.label}: <b>${diff > 0 ? '+' : ''}${diff.toFixed(1)} ס"מ</b>`;
+    }).filter(Boolean).join(' | ');
+  const insightEl = document.getElementById('meas-insight');
+  insightEl.className = 'chart-insight';
+  insightEl.innerHTML = insights ? `📏 שינוי כולל — ${insights}` : '';
+}
+
+// ---- Chart 4: Score — daily line + weekly avg bars ----
+function renderScoreChart(data) {
+  const c = getColors();
+  const ctx = document.getElementById('score-chart');
+  if (!ctx) return;
+
+  // Daily scores (filtered by range)
+  const dailyFiltered = filterByRange(data.weights).filter(w => w.score);
+  if (!dailyFiltered.length) {
+    document.getElementById('score-insight').textContent = 'הזן ציונים כדי לראות את הגרף';
+    if (scoreChartInst) { scoreChartInst.destroy(); scoreChartInst = null; }
+    return;
+  }
+
+  // Group into weekly averages
+  const weeks = {};
+  dailyFiltered.forEach(w => {
+    const wk = weekOf(w.date);
+    if (!weeks[wk]) weeks[wk] = { scores: [], start: wk };
+    weeks[wk].scores.push(w.score);
+  });
+  const weekKeys = Object.keys(weeks).sort();
+
+  // Build unified daily x-axis
+  const dailyLabels = dailyFiltered.map(w => formatDate(w.date));
+  const dailyScores = dailyFiltered.map(w => w.score);
+
+  // Map weekly avg back to a point on the daily x-axis (last day of each week in the filtered set)
+  const weeklyBarData = dailyLabels.map(() => null);
+  weekKeys.forEach(wk => {
+    const avg = +(weeks[wk].scores.reduce((s,v)=>s+v,0)/weeks[wk].scores.length).toFixed(1);
+    // find last index in dailyFiltered that belongs to this week
+    let lastIdx = -1;
+    dailyFiltered.forEach((w, i) => { if (weekOf(w.date) === wk) lastIdx = i; });
+    if (lastIdx >= 0) weeklyBarData[lastIdx] = avg;
+  });
+
+  // Color bars by score level
+  const barColors = weeklyBarData.map(v => v === null ? 'transparent' :
+    v >= 8 ? c.accent + 'dd' :
+    v >= 5 ? c.accent2 + 'dd' :
+    c.danger + 'dd'
+  );
+
+  if (scoreChartInst) scoreChartInst.destroy();
+  scoreChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: dailyLabels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'ממוצע שבועי',
+          data: weeklyBarData,
+          backgroundColor: barColors,
+          borderRadius: 6,
+          barThickness: 18,
+          order: 2,
+        },
+        {
+          type: 'line',
+          label: 'ציון יומי',
+          data: dailyScores,
+          borderColor: c.accent4,
+          backgroundColor: c.accent4 + '20',
+          borderWidth: 2,
+          pointRadius: dailyScores.length > 30 ? 2 : 4,
+          pointBackgroundColor: dailyScores.map(s =>
+            s >= 8 ? c.accent :
+            s >= 5 ? c.accent4 :
+            c.danger
+          ),
+          pointBorderColor: 'transparent',
+          tension: 0.35,
+          fill: true,
+          order: 1,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: c.tick, font: { family: 'Heebo', size: 11 }, boxWidth: 14,
+            filter: item => item.text !== 'ממוצע שבועי' || weeklyBarData.some(v => v !== null)
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              if (ctx.raw === null) return null;
+              return `${ctx.dataset.label}: ${ctx.raw}/10 ${scoreEmoji(ctx.raw)}`;
+            }
+          },
+          filter: item => item.raw !== null
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: c.tick, font: { size: 9 }, maxRotation: 45, maxTicksLimit: 12 },
+          grid: { display: false }
+        },
+        y: {
+          min: 0, max: 10,
+          ticks: { color: c.tick, font: { family: 'Space Mono', size: 10 }, stepSize: 2 },
+          grid: { color: c.grid }
+        }
+      }
+    }
+  });
+
+  // Insight
+  const allAvgs = weekKeys.map(wk => +(weeks[wk].scores.reduce((s,v)=>s+v,0)/weeks[wk].scores.length).toFixed(1));
+  const maxScore = Math.max(...allAvgs);
+  const minScore = Math.min(...allAvgs);
+  const minWkIdx = allAvgs.indexOf(minScore);
+  const minWkLabel = weekKeys[minWkIdx] ? (() => { const [,m,d] = weekKeys[minWkIdx].split('-'); return `${d}/${m}`; })() : '';
+  const insightEl = document.getElementById('score-insight');
+  insightEl.className = 'chart-insight' + (minScore < 5 ? ' warn' : '');
+  insightEl.innerHTML = `🔥 שבוע הכי טוב: <b>${maxScore}/10</b> ${scoreEmoji(maxScore)} &nbsp;|&nbsp; 😓 שבוע הכי קשה: <b>${minScore}/10</b> ${scoreEmoji(minScore)} (שבוע ${minWkLabel})`;
+}
+
+// =================== THEME ===================
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('wt_theme', isLight ? 'light' : 'dark');
+  document.getElementById('theme-label').textContent = isLight ? 'מצב כהה' : 'מצב בהיר';
+  document.querySelector('.toggle-icon').textContent = isLight ? '☀️' : '🌙';
+  // Redraw charts to pick up new grid colors
+  const d = getData();
+  renderWeightChart(d);
+  renderCharts(d);
+}
+
+// =================== INIT ===================
+(function() {
+  const saved = localStorage.getItem('wt_theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    const lbl = document.getElementById('theme-label');
+    const ico = document.querySelector('.toggle-icon');
+    if (lbl) lbl.textContent = 'מצב כהה';
+    if (ico) ico.textContent = '☀️';
+  }
+  // render() is triggered by onSnapshot once user logs in
+})();
+</script>
+</div><!-- end app-wrap -->
+</body>
+</html>
