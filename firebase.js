@@ -31,19 +31,18 @@ function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
 
-  const isIOSPWA = window.navigator.standalone === true;
+  // iOS Safari (PWA ו-browser רגיל) לא תומך ב-popup — חייבים redirect
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-  if (isIOSPWA) {
-    // iOS PWA: פתח Safari רגיל לauth, ואז חזור לאפליקציה
-    // שמור שהמשתמש ניסה להתחבר
-    localStorage.setItem('iosPwaLoginPending', '1');
+  if (isIOS) {
+    // שמור דגל ב-sessionStorage לפני ה-redirect
+    sessionStorage.setItem('pendingLogin', '1');
     auth.signInWithRedirect(provider).catch(e => {
       loginPending = false;
-      localStorage.removeItem('iosPwaLoginPending');
+      sessionStorage.removeItem('pendingLogin');
       alert('שגיאה בכניסה: ' + e.message);
     });
   } else {
-    // כל שאר הדפדפנים — popup רגיל
     auth.signInWithPopup(provider)
       .catch(e => {
         if (e.code !== 'auth/cancelled-popup-request' &&
@@ -55,13 +54,12 @@ function signInWithGoogle() {
   }
 }
 
-// טיפול בחזרה מ-redirect
+// טיפול בחזרה מ-redirect (iOS)
 auth.getRedirectResult().then(result => {
-  localStorage.removeItem('iosPwaLoginPending');
-  loginPending = false;
+  sessionStorage.removeItem('pendingLogin');
+  if (result && result.user) { /* onAuthStateChanged יטפל */ }
 }).catch(e => {
-  localStorage.removeItem('iosPwaLoginPending');
-  loginPending = false;
+  sessionStorage.removeItem('pendingLogin');
   if (e.code !== 'auth/no-current-user') console.error('Redirect error:', e);
 });
 
