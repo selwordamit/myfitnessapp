@@ -26,34 +26,26 @@ let loginPending = false;
 // ---------- Auth ----------
 function signInWithGoogle() {
   if (loginPending) return;
+  loginPending = true;
 
   const provider = new firebase.auth.GoogleAuthProvider();
   const isIOSPWA = window.navigator.standalone === true;
 
   if (isIOSPWA) {
-    alert('באייפון כשפותחים מהמסך הראשי, הכניסה עם Google לא תמיד נתמכת בצורה תקינה. יש לפתוח את האפליקציה ב-Safari ולהתחבר שם.');
-    window.location.href = 'https://fitness-tracker-amit.firebaseapp.com/?openInSafariLogin=1';
-    return;
-  }
-
-  loginPending = true;
-
-  auth.signInWithPopup(provider)
-    .catch(e => {
-      if (
-        e.code !== 'auth/cancelled-popup-request' &&
-        e.code !== 'auth/popup-closed-by-user'
-      ) {
-        alert('שגיאה בכניסה: ' + e.message);
-      }
-    })
-    .finally(() => {
+    auth.signInWithRedirect(provider).catch(e => {
       loginPending = false;
+      alert('שגיאה בכניסה: ' + e.message);
     });
-}
-
-function openInSafariForLogin() {
-  window.location.href = 'https://fitness-tracker-amit.firebaseapp.com/?openInSafariLogin=1';
+  } else {
+    auth.signInWithPopup(provider)
+      .catch(e => {
+        if (e.code !== 'auth/cancelled-popup-request' &&
+            e.code !== 'auth/popup-closed-by-user') {
+          alert('שגיאה בכניסה: ' + e.message);
+        }
+      })
+      .finally(() => { loginPending = false; });
+  }
 }
 
 // טיפול בחזרה מ-redirect
