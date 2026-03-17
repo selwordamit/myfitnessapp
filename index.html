@@ -6,15 +6,6 @@
 <title>המסע שלי 💪</title>
 
 <!-- PWA -->
-<meta name="theme-color" content="#0d0f14">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="המסע שלי">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d0f14'/><text y='.9em' font-size='80' x='10'>💪</text></svg>">
-<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22%D7%94%D7%9E%D7%A1%D7%A2+%D7%A9%D7%9C%D7%99%22%2C%22short_name%22%3A%22%D7%94%D7%9E%D7%A1%D7%A2%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230d0f14%22%2C%22theme_color%22%3A%22%230d0f14%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg+xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'+viewBox%3D'0+0+100+100'%3E%3Crect+width%3D'100'+height%3D'100'+rx%3D'20'+fill%3D'%230d0f14'%2F%3E%3Ctext+y%3D'.9em'+font-size%3D'80'+x%3D'10'%3E%F0%9F%92%AA%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
-
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -28,17 +19,13 @@
   </div>
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:100%;max-width:320px;text-align:center">
     <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:20px;line-height:1.6">
-      כניסה עם חשבון Google שומרת את הנתונים שלך בענן —<br>
-      נגישים מכל מכשיר, רק לך.
-    </p>
+  המסע שלך שמור בענן - נגיש מכל מכשיר, רק לך 🌿
+</p>
     <button onclick="signInWithGoogle()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:10px;font-family:'Heebo',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;">
       <img src="https://www.google.com/favicon.ico" width="18" height="18" alt="Google">
       כניסה עם Google
     </button>
   </div>
-  <p style="font-size:0.72rem;color:var(--text-muted);text-align:center;max-width:280px;line-height:1.6">
-    כל משתמש רואה רק את הנתונים שלו.<br>אפשר לשתף את הקובץ עם חברים — לכל אחד חשבון נפרד.
-  </p>
 </div>
 
 <!-- APP WRAPPER -->
@@ -54,9 +41,11 @@
 </div>
 
 <header>
-  <h1>💪 המסע שלי</h1>
-  <p id="header-date">טוען...</p>
-  <p id="header-greeting" style="font-size:0.82rem;color:var(--accent);font-weight:600;margin-top:2px;display:none"></p>
+  <div style="display:flex;flex-direction:column;gap:3px">
+    <h1 id="header-greeting">💪 המסע שלי</h1>
+    <p id="header-date" style="font-size:0.78rem;color:var(--text-muted)">טוען...</p>
+    <p id="daily-motivation" style="font-size:0.8rem;color:var(--accent2);margin-top:2px;font-style:italic;opacity:0.9"></p>
+  </div>
   <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">
     <span class="toggle-icon">🌙</span>
     <span id="theme-label">מצב כהה</span>
@@ -92,8 +81,9 @@
       </div>
     </div>
 
+    <!-- כרטיסיית בוקר: משקל -->
     <div class="card">
-      <div class="card-title">⚖️ הוסף משקל</div>
+      <div class="card-title">☀️ בוקר — הוסף משקל</div>
       <div class="form-group">
         <label>תאריך</label>
         <input type="date" id="weight-date">
@@ -102,18 +92,27 @@
         <label>משקל (ק"ג)</label>
         <input type="number" id="weight-input" step="0.1" min="30" max="300" placeholder="למשל: 78.5">
       </div>
+      <button class="btn btn-primary" onclick="addWeight()">שמור משקל ✓</button>
+    </div>
+
+    <!-- כרטיסיית ערב: ציון תפריט -->
+    <div class="card">
+      <div class="card-title">🌙 ערב — כמה הייתי על התפריט?</div>
+      <div class="form-group">
+        <label>תאריך</label>
+        <input type="date" id="score-date">
+      </div>
       <div class="form-group">
         <div class="range-display">
-          <label style="margin:0">📋 כמה "על התפריט" הייתי?</label>
+          <label style="margin:0">📋 ציון יומי</label>
           <span class="range-val" id="score-val">5</span>
         </div>
-        <input type="range" id="score-input" min="1" max="10" value="5"
-               style="direction:ltr" oninput="updateScore(this.value)">
+        <input type="range" id="score-input" min="1" max="10" value="5" oninput="updateScore(this.value)">
         <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);margin-top:4px">
           <span>🔥 10</span><span>😐 5</span><span>😞 1</span>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="addWeight()">שמור היום ✓</button>
+      <button class="btn btn-primary" onclick="addScore()" style="background:var(--accent2);color:#fff">שמור ציון ✓</button>
     </div>
 
     <div class="card">
@@ -330,10 +329,9 @@
         <span class="range-val" id="edit-score-val" style="font-size:1.3rem">5</span>
       </div>
       <input type="range" id="edit-score-input" min="1" max="10" value="5"
-             style="direction:ltr"
              oninput="document.getElementById('edit-score-val').textContent=this.value">
       <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);margin-top:4px">
-        <span>🔥 10</span><span>😐 5</span><span>😞 1</span>
+        <span>😞 1</span><span>😐 5</span><span>🔥 10</span>
       </div>
     </div>
     <div class="modal-actions">
@@ -415,14 +413,16 @@
   </button>
 </nav>
 
-<!-- Firebase SDKs -->
-<!-- Firebase compat SDKs (גלובליים — ללא import/export, עובדים עם onclick) -->
+
+<!-- Firebase compat SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="firebase.js"></script>
+
+<!-- Chart.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="app.js"></script>
-</div><!-- end app-wrap -->
+
 </body>
 </html>

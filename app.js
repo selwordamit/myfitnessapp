@@ -1,4 +1,45 @@
 
+// =================== DAILY MOTIVATION ===================
+const MOTIVATIONS = [
+  "כל יום שאתה מתמיד הוא ניצחון קטן 🏆",
+  "הגוף משיג מה שהמוח מאמין בו 💡",
+  "אתה חזק יותר ממה שאתה חושב 💪",
+  "ההרגל של היום הוא הגוף של מחר 🌱",
+  "כל צעד קטן מקרב אותך ליעד 👣",
+  "אל תשווה את עצמך לאחרים — השווה לאתמול שלך 🔄",
+  "המסע מתחיל בצעד אחד 🚀",
+  "עקביות מנצחת שלמות בכל פעם ✅",
+  "הכאב של היום הוא הכוח של מחר 🔥",
+  "אתה לא מפסיד — אתה לומד 📚",
+  "הגוף שלך שומע את כל מה שאתה אומר לו — דבר יפה 🌟",
+  "שינוי אמיתי לוקח זמן. תן לו זמן ⏳",
+  "המוטיבציה מתחילה אותך, ההרגל ממשיך אותך 🎯",
+  "כל ארוחה טובה היא השקעה בגוף שלך 🥗",
+  "קל לוותר — קשה להצטער. בחר נכון 💎",
+  "אתה כבר עשית את הצעד הכי קשה — להתחיל 🎉",
+  "גאוה אמיתית היא להסתכל אחורה ולראות כמה עברת 🌅",
+  "הגוף שלך הוא הבית שלך — תשמור עליו 🏠",
+  "מה שנמדד — משתפר 📊",
+  "השינוי לא קורה בחדר כושר — הוא קורה במטבח ובמוח 🧠",
+  "יום אחד לא מחליף כלום. כל הימים ביחד — מחליפים הכל 📅",
+  "תתמקד בתהליך, לא רק בתוצאה 🎯",
+  "כל 'לא' לפינוק מיותר הוא 'כן' ליעד שלך ✋",
+  "הגוף מגיב לאיך שאתה מתייחס אליו 💚",
+  "אל תמתין ליום המושלם — התחל היום 📆",
+  "הדרך הטובה ביותר לחזות את העתיד היא לבנות אותו 🔨",
+  "כוח רצון הוא כמו שריר — מתחזק עם שימוש 💪",
+  "תאכל כדי לחיות, אל תחיה כדי לאכול 🍎",
+  "כל פעם שאתה בוחר נכון — אתה מחזק את הגרסה הטובה של עצמך ⭐",
+  "הצלחה היא סכום של מאמצים קטנים שחוזרים על עצמם 🔁",
+];
+
+function getDailyMotivation() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now - start) / 86400000);
+  return MOTIVATIONS[dayOfYear % MOTIVATIONS.length];
+}
+
 // =================== UTILS ===================
 function today() {
   return new Date().toISOString().split('T')[0];
@@ -43,15 +84,14 @@ function switchTab(name) {
   render();
 }
 
-// =================== WEIGHT ===================
 function updateScore(v) {
   document.getElementById('score-val').textContent = v;
 }
 
+// =================== WEIGHT (בוקר) ===================
 function addWeight() {
   const date = document.getElementById('weight-date').value;
   const val = parseFloat(document.getElementById('weight-input').value);
-  const score = parseInt(document.getElementById('score-input').value);
   if (!date || isNaN(val) || val < 20 || val > 500) {
     alert('אנא הזן תאריך ומשקל תקין'); return;
   }
@@ -59,13 +99,32 @@ function addWeight() {
   const existing = weights.findIndex(w => w.date === date);
   if (existing >= 0) {
     if (!confirm('כבר קיים ערך לתאריך זה. להחליף?')) return;
-    weights[existing] = {date, weight: val, score};
+    weights[existing] = { ...weights[existing], date, weight: val };
   } else {
-    weights.push({date, weight: val, score});
+    weights.push({ date, weight: val, score: null });
   }
   weights.sort((a,b) => a.date.localeCompare(b.date));
   saveData('weights', weights);
-  showToast('⚖️ משקל נשמר!');
+  showToast('☀️ משקל נשמר!');
+  render();
+}
+
+// =================== SCORE (ערב) ===================
+function addScore() {
+  const date = document.getElementById('score-date').value;
+  const score = parseInt(document.getElementById('score-input').value);
+  if (!date) { alert('אנא בחר תאריך'); return; }
+  const {weights} = getData();
+  const existing = weights.findIndex(w => w.date === date);
+  if (existing >= 0) {
+    weights[existing] = { ...weights[existing], score };
+  } else {
+    // ציון בלי משקל — שמור עם משקל null
+    weights.push({ date, weight: null, score });
+    weights.sort((a,b) => a.date.localeCompare(b.date));
+  }
+  saveData('weights', weights);
+  showToast('🌙 ציון נשמר!');
   render();
 }
 
@@ -269,15 +328,27 @@ let weightChart = null;
 function render() {
   const data = getData();
 
-  // Header date
+  // Header greeting + date + motivation
   const now = new Date();
+  const hour = now.getHours();
   const days = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
   const months = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+  const firstName = currentUser?.displayName?.split(' ')[0] || '';
+  let greeting;
+  if (hour >= 5  && hour < 12) greeting = `☀️ בוקר טוב${firstName ? ', ' + firstName : ''}!`;
+  else if (hour >= 12 && hour < 17) greeting = `🌤️ צהריים טובים${firstName ? ', ' + firstName : ''}!`;
+  else if (hour >= 17 && hour < 21) greeting = `🌆 ערב טוב${firstName ? ', ' + firstName : ''}!`;
+  else                               greeting = `🌙 לילה טוב${firstName ? ', ' + firstName : ''}!`;
+
+  document.getElementById('header-greeting').textContent = greeting;
   document.getElementById('header-date').textContent = `יום ${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('daily-motivation').textContent = getDailyMotivation();
 
   // Set default dates
   document.getElementById('weight-date').value = document.getElementById('weight-date').value || today();
   document.getElementById('meas-date').value = document.getElementById('meas-date').value || today();
+  document.getElementById('score-date').value = document.getElementById('score-date').value || today();
 
   renderStats(data);
   renderWeightChart(data);
@@ -291,22 +362,27 @@ function render() {
 function renderStats(data) {
   const {weights} = data;
   if (!weights.length) return;
-  const last = weights[weights.length - 1];
-  document.getElementById('stat-current').textContent = last.weight.toFixed(1);
 
-  // Weekly diff
-  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-  const weekAgoStr = weekAgo.toISOString().split('T')[0];
-  const weekOld = weights.filter(w => w.date <= weekAgoStr);
-  if (weekOld.length) {
-    const oldW = weekOld[weekOld.length-1].weight;
-    const diff = last.weight - oldW;
-    const el = document.getElementById('stat-diff');
-    el.textContent = (diff > 0 ? '+' : '') + diff.toFixed(1);
-    el.style.color = diff <= 0 ? 'var(--accent)' : 'var(--danger)';
+  // רק רשומות עם משקל
+  const withWeight = weights.filter(w => w.weight != null);
+  if (withWeight.length) {
+    const last = withWeight[withWeight.length - 1];
+    document.getElementById('stat-current').textContent = last.weight.toFixed(1);
+
+    // Weekly diff
+    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekAgoStr = weekAgo.toISOString().split('T')[0];
+    const weekOld = withWeight.filter(w => w.date <= weekAgoStr);
+    if (weekOld.length) {
+      const oldW = weekOld[weekOld.length-1].weight;
+      const diff = last.weight - oldW;
+      const el = document.getElementById('stat-diff');
+      el.textContent = (diff > 0 ? '+' : '') + diff.toFixed(1);
+      el.style.color = diff <= 0 ? 'var(--accent)' : 'var(--danger)';
+    }
   }
 
-  // Weekly score avg
+  // Weekly score avg (כולל רשומות עם ציון בלבד)
   const weekStart = weekOf(today());
   const thisWeek = weights.filter(w => weekOf(w.date) === weekStart && w.score);
   if (thisWeek.length) {
@@ -319,7 +395,7 @@ function renderWeightChart(data) {
   const {weights} = data;
   const ctx = document.getElementById('weight-chart');
   if (!ctx) return;
-  const last14 = weights.slice(-14);
+  const last14 = weights.filter(w => w.weight != null).slice(-14);
   if (last14.length < 2) {
     ctx.style.display = 'none'; return;
   }
@@ -460,7 +536,7 @@ function renderHistory(data) {
         ${w.score ? `<div style="font-size:0.75rem;color:var(--text-muted)">${scoreEmoji(w.score)} ציון: ${w.score}/10</div>` : ''}
       </div>
       <div style="display:flex;align-items:center;gap:6px">
-        <div class="entry-val">${w.weight.toFixed(1)} ק"ג</div>
+        <div class="entry-val">${w.weight != null ? w.weight.toFixed(1) + ' ק"ג' : '— ק"ג'}</div>
         <button class="btn-edit" onclick="openEditWeight('${w.date}')">✏️</button>
         <button class="btn-delete-entry" onclick="deleteWeight('${w.date}')">🗑️</button>
       </div>
@@ -538,11 +614,12 @@ function getColors() {
 }
 
 function filterByRange(weights) {
-  if (!chartRange) return weights;
+  const withWeight = weights.filter(w => w.weight != null);
+  if (!chartRange) return withWeight;
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - chartRange);
   const cutoffStr = cutoff.toISOString().split('T')[0];
-  return weights.filter(w => w.date >= cutoffStr);
+  return withWeight.filter(w => w.date >= cutoffStr);
 }
 
 function renderCharts(data) {
