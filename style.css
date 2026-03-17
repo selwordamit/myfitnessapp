@@ -189,18 +189,20 @@
     margin-bottom: 6px;
     font-weight: 500;
   }
-  input[type="number"], input[type="date"], select {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: 'Space Mono', monospace;
-    font-size: 1rem;
-    padding: 12px 14px;
-    transition: border-color 0.2s;
-    outline: none;
-  }
+input[type="number"], input[type="date"], select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 1rem;
+  padding: 12px 14px;
+  transition: border-color 0.2s;
+  outline: none;
+  box-sizing: border-box;
+  min-width: 0;
+}
   input:focus, select:focus { border-color: var(--accent); }
   input[type="range"] {
     width: 100%;
@@ -500,9 +502,25 @@
     .bottom-nav { max-width: 480px; left: 50%; transform: translateX(-50%); }
   }
 
-  /* Fix date input overflow in card */
-  .card { overflow: hidden; }
-  input[type="date"] { max-width: 100%; }
+/* Fix date input overflow in card / mobile Chrome */
+.card { overflow: hidden; }
+
+.form-group {
+  min-width: 0;
+}
+
+input[type="date"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  direction: ltr;
+  text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: 'Heebo', sans-serif;
+  font-size: 16px;
+}
 
   /* Edit button on history items */
   .btn-edit {
