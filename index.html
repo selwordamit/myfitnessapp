@@ -38,8 +38,17 @@
       התחבר פעם אחת דרך Safari רגיל ←<br>
       אחר כך האפליקציה תזכור אותך 🔒
     </p>
+    <button
+  id="open-safari-login-btn"
+  style="display:none;margin-top:10px;width:100%;padding:14px;background:#fbbf24;color:#111827;border:none;border-radius:10px;font-family:'Heebo',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;"
+  onclick="openInSafariForLogin()"
+>
+  פתח ב-Safari כדי להתחבר
+</button>
   </div>
 </div>
+
+
 
 <!-- APP WRAPPER -->
 <div id="app-wrap" style="display:none">
@@ -440,12 +449,32 @@
 <script src="app.js"></script>
 
 <script>
-  // הצג הודעה מיוחדת למשתמשי iOS PWA
-  if (window.navigator.standalone === true) {
-    const notice = document.getElementById('ios-pwa-notice');
-    if (notice) notice.style.display = 'block';
-  }
-</script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const isIOSPWA = window.navigator.standalone === true;
 
+    if (isIOSPWA) {
+      const notice = document.getElementById('ios-pwa-notice');
+      const safariBtn = document.getElementById('open-safari-login-btn');
+      const googleBtn = document.getElementById('google-signin-btn');
+
+      if (notice) notice.style.display = 'block';
+      if (safariBtn) safariBtn.style.display = 'block';
+      if (googleBtn) googleBtn.style.display = 'none';
+    }
+  });
+</script>
+window.addEventListener('DOMContentLoaded', () => {
+  const isIOSPWA = window.navigator.standalone === true;
+
+  if (isIOSPWA) {
+    const notice = document.getElementById('ios-pwa-notice');
+    const safariBtn = document.getElementById('open-safari-login-btn');
+    const googleBtn = document.getElementById('google-signin-btn');
+
+    if (notice) notice.style.display = 'block';
+    if (safariBtn) safariBtn.style.display = 'block';
+    if (googleBtn) googleBtn.style.display = 'none';
+  }
+});
 </body>
 </html>
