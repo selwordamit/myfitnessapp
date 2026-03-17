@@ -19,13 +19,17 @@
   </div>
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:100%;max-width:320px;text-align:center">
     <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:20px;line-height:1.6">
-  המסע שלך שמור בענן - נגיש מכל מכשיר, רק לך 🌿
-</p>
+      כניסה עם חשבון Google שומרת את הנתונים שלך בענן —<br>
+      נגישים מכל מכשיר, רק לך.
+    </p>
     <button onclick="signInWithGoogle()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:10px;font-family:'Heebo',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;">
       <img src="https://www.google.com/favicon.ico" width="18" height="18" alt="Google">
       כניסה עם Google
     </button>
   </div>
+  <p style="font-size:0.72rem;color:var(--text-muted);text-align:center;max-width:280px;line-height:1.6">
+    כל משתמש רואה רק את הנתונים שלו.<br>אפשר לשתף את הקובץ עם חברים — לכל אחד חשבון נפרד.
+  </p>
 </div>
 
 <!-- APP WRAPPER -->
@@ -195,14 +199,16 @@
       <div id="trend-insight" class="chart-insight"></div>
     </div>
 
-    <!-- Day of week analysis -->
+
+
+    <!-- Score by day of week -->
     <div class="card">
-      <div class="card-title">📅 ממוצע משקל לפי יום בשבוע</div>
-      <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px">אדום = ימים קשים יחסית — שים עליהם דגש 🎯</p>
+      <div class="card-title">📋 ממוצע "על התפריט" לפי יום בשבוע</div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px">אדום = ימים שקשה לך יותר לשמור על התפריט 🎯</p>
       <div class="chart-wrap" style="height:210px">
-        <canvas id="dayofweek-chart"></canvas>
+        <canvas id="score-dow-chart"></canvas>
       </div>
-      <div id="hardday-insight" class="chart-insight"></div>
+      <div id="score-dow-insight" class="chart-insight"></div>
     </div>
 
     <!-- Measurements trend — all active by default -->

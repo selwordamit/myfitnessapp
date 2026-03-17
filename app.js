@@ -625,7 +625,7 @@ function filterByRange(weights) {
 function renderCharts(data) {
   if (!document.getElementById('tab-charts').classList.contains('active')) return;
   renderTrendChart(data);
-  renderDowChart(data);
+  renderScoreDowChart(data);
   renderMeasChart(data);
   renderScoreChart(data);
 }
@@ -714,41 +714,44 @@ function renderTrendChart(data) {
   insightEl.innerHTML = `${dir} שינוי כולל בטווח: <b>${totalChange > 0 ? '+' : ''}${totalChange.toFixed(1)} ק"ג</b> | קצב: <b>${perWeek > 0 ? '+' : ''}${perWeek} ק"ג/שבוע</b>`;
 }
 
-// ---- Chart 2: Day-of-week avg weight ----
-function renderDowChart(data) {
+// ---- Chart 2b: Day-of-week avg SCORE ----
+function renderScoreDowChart(data) {
   const c = getColors();
-  const filtered = filterByRange(data.weights);
-  const ctx = document.getElementById('dayofweek-chart');
+  const filtered = filterByRange(data.weights).filter(w => w.score);
+  const ctx = document.getElementById('score-dow-chart');
   if (!ctx) return;
 
   const dayNames = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
   const buckets = Array.from({length:7}, () => []);
   filtered.forEach(w => {
     const d = new Date(w.date).getDay();
-    buckets[d].push(w.weight);
+    buckets[d].push(w.score);
   });
-  const avgs = buckets.map(b => b.length ? +(b.reduce((s,v)=>s+v,0)/b.length).toFixed(2) : null);
+  const avgs = buckets.map(b => b.length ? +(b.reduce((s,v)=>s+v,0)/b.length).toFixed(1) : null);
   const validAvgs = avgs.filter(v => v !== null);
 
+  const insightEl = document.getElementById('score-dow-insight');
+
   if (validAvgs.length < 2) {
-    document.getElementById('hardday-insight').textContent = 'צריך נתונים ממספר ימים שונים בשבוע';
-    if (dowChartInst) { dowChartInst.destroy(); dowChartInst = null; }
+    insightEl.textContent = 'צריך ציונים ממספר ימים שונים בשבוע';
+    if (window.scoreDowChartInst) { window.scoreDowChartInst.destroy(); window.scoreDowChartInst = null; }
     return;
   }
 
   const globalAvg = validAvgs.reduce((s,v)=>s+v,0)/validAvgs.length;
+  // ציון נמוך = אדום (יום קשה), ציון גבוה = ירוק
   const bgColors = avgs.map(v => v === null ? c.grid :
-    v > globalAvg + 0.3 ? c.danger + 'cc' :
-    v < globalAvg - 0.3 ? c.accent + 'cc' : c.accent2 + 'cc'
+    v < globalAvg - 0.5 ? c.danger + 'cc' :
+    v > globalAvg + 0.5 ? c.accent + 'cc' : c.accent2 + 'cc'
   );
 
-  if (dowChartInst) dowChartInst.destroy();
-  dowChartInst = new Chart(ctx, {
+  if (window.scoreDowChartInst) window.scoreDowChartInst.destroy();
+  window.scoreDowChartInst = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: dayNames,
       datasets: [{
-        label: 'ממוצע משקל',
+        label: 'ממוצע ציון',
         data: avgs,
         backgroundColor: bgColors,
         borderRadius: 6,
@@ -757,30 +760,35 @@ function renderDowChart(data) {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.raw !== null ? `ציון: ${ctx.raw}/10 ${scoreEmoji(ctx.raw)}` : ''
+          }
+        }
+      },
       scales: {
         x: { ticks: { color: c.tick, font: { family: 'Heebo', size: 10 } }, grid: { display: false } },
         y: {
-          min: Math.min(...validAvgs) - 1,
-          max: Math.max(...validAvgs) + 1,
-          ticks: { color: c.tick, font: { family: 'Space Mono', size: 10 } },
+          min: 0, max: 10,
+          ticks: { color: c.tick, font: { family: 'Space Mono', size: 10 }, stepSize: 2 },
           grid: { color: c.grid }
         }
       }
     }
   });
 
-  // Find hardest day
-  const maxAvg = Math.max(...validAvgs);
-  const hardDayIdx = avgs.indexOf(maxAvg);
-  const minAvg = Math.min(...validAvgs);
-  const easyDayIdx = avgs.indexOf(minAvg);
-  const insightEl = document.getElementById('hardday-insight');
+  // Insight
+  const minScore = Math.min(...validAvgs);
+  const maxScore = Math.max(...validAvgs);
+  const hardDayIdx = avgs.indexOf(minScore);
+  const easyDayIdx = avgs.indexOf(maxScore);
   insightEl.className = 'chart-insight warn';
-  insightEl.innerHTML = `⚠️ יום <b>${dayNames[hardDayIdx]}</b> — ממוצע המשקל הגבוה ביותר (${maxAvg.toFixed(1)}). שים עליו דגש! ✅ יום <b>${dayNames[easyDayIdx]}</b> — הכי קל לך (${minAvg.toFixed(1)})`;
+  insightEl.innerHTML = `😓 יום <b>${dayNames[hardDayIdx]}</b> — הציון הנמוך ביותר (${minScore}/10). שים עליו דגש! &nbsp;✅ יום <b>${dayNames[easyDayIdx]}</b> — הכי חזק לך (${maxScore}/10)`;
 }
 
-// ---- Chart 3: Measurements trend ----
+
 function renderMeasChart(data) {
   const c = getColors();
   const ctx = document.getElementById('meas-chart');
