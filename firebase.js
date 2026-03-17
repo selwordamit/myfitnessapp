@@ -28,16 +28,13 @@ function signInWithGoogle() {
   if (loginPending) return;
   loginPending = true;
 
-  // כש-PWA מותקן ב-standalone mode, popup לא עובד — נשתמש ב-redirect
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-                    || window.navigator.standalone === true;
-
   const provider = new firebase.auth.GoogleAuthProvider();
+  const isIOSPWA = window.navigator.standalone === true;
 
-  if (isStandalone) {
+  if (isIOSPWA) {
     auth.signInWithRedirect(provider).catch(e => {
       loginPending = false;
-      console.error(e);
+      alert('שגיאה בכניסה: ' + e.message);
     });
   } else {
     auth.signInWithPopup(provider)
@@ -51,10 +48,11 @@ function signInWithGoogle() {
   }
 }
 
-// טיפול בחזרה מ-redirect (PWA)
+// טיפול בחזרה מ-redirect
 auth.getRedirectResult().then(result => {
-  if (result && result.user) { /* onAuthStateChanged יטפל */ }
+  loginPending = false;
 }).catch(e => {
+  loginPending = false;
   if (e.code !== 'auth/no-current-user') console.error('Redirect error:', e);
 });
 
@@ -85,16 +83,6 @@ function showApp(user) {
   const av = document.getElementById('user-avatar');
   av.src = user.photoURL || '';
   av.style.display = user.photoURL ? 'block' : 'none';
-
-  // Greeting with first name
-  const firstName = (user.displayName || '').split(' ')[0] || '';
-  const greetEl = document.getElementById('header-greeting');
-  if (firstName) {
-    const hour = new Date().getHours();
-    const timeGreet = hour < 12 ? 'בוקר טוב' : hour < 17 ? 'צהריים טובים' : hour < 21 ? 'ערב טוב' : 'לילה טוב';
-    greetEl.textContent = `${timeGreet}, ${firstName} 👋`;
-    greetEl.style.display = 'block';
-  }
 }
 
 // ---------- Firestore real-time listener ----------

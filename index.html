@@ -28,10 +28,16 @@
     <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:20px;line-height:1.6">
   המסע שלך שמור בענן — נגיש מכל מכשיר, רק לך 🌿
 </p>
-    <button onclick="signInWithGoogle()" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:10px;font-family:'Heebo',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;">
+    <button onclick="signInWithGoogle()" id="google-signin-btn" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;border-radius:10px;font-family:'Heebo',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;">
       <img src="https://www.google.com/favicon.ico" width="18" height="18" alt="Google">
       כניסה עם Google
     </button>
+    <!-- הודעה מיוחדת ל-iOS PWA -->
+    <p id="ios-pwa-notice" style="display:none;margin-top:14px;padding:10px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:8px;font-size:0.75rem;color:var(--accent4);line-height:1.7;text-align:right">
+      💡 <b>טיפ לכניסה ראשונה:</b><br>
+      התחבר פעם אחת דרך Safari רגיל ←<br>
+      אחר כך האפליקציה תזכור אותך 🔒
+    </p>
   </div>
 </div>
 
@@ -432,6 +438,14 @@
 <!-- Chart.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="app.js"></script>
+
+<script>
+  // הצג הודעה מיוחדת למשתמשי iOS PWA
+  if (window.navigator.standalone === true) {
+    const notice = document.getElementById('ios-pwa-notice');
+    if (notice) notice.style.display = 'block';
+  }
+</script>
 
 </body>
 </html>
