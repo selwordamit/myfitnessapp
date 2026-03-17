@@ -1,5 +1,5 @@
 // ============================================================
-//  🔧 הדבק כאן את ה-firebaseConfig שלך מ-Firebase Console
+//  🔧firebaseConfig 
 // ============================================================
 const firebaseConfig = {
   apiKey:            "AIzaSyCm8pP02p2sJ1dDfNYKpP6IBZhopQP-sjY",
@@ -15,75 +15,122 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db   = firebase.firestore();
 
-// persistence פעם אחת בטעינה
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
 let currentUser  = null;
 let unsubscribe  = null;
 let localCache   = { weights: [], measurements: [], goals: {} };
 let loginPending = false;
 
 // ---------- Auth ----------
+// ---------- Auth ----------
+let authResolved = false;
+
+function isIOSPWA() {
+  return window.navigator.standalone === true;
+}
+
 function signInWithGoogle() {
   if (loginPending) return;
   loginPending = true;
 
   const provider = new firebase.auth.GoogleAuthProvider();
-  const isIOSPWA = window.navigator.standalone === true;
-
-  if (isIOSPWA) {
-    auth.signInWithRedirect(provider).catch(e => {
-      loginPending = false;
-      alert('שגיאה בכניסה: ' + e.message);
-    });
-  } else {
-    auth.signInWithPopup(provider)
-      .catch(e => {
-        if (e.code !== 'auth/cancelled-popup-request' &&
-            e.code !== 'auth/popup-closed-by-user') {
-          alert('שגיאה בכניסה: ' + e.message);
-        }
-      })
-      .finally(() => { loginPending = false; });
-  }
-}
-
-// טיפול בחזרה מ-redirect
-auth.getRedirectResult().then(result => {
-  loginPending = false;
-}).catch(e => {
-  loginPending = false;
-  if (e.code !== 'auth/no-current-user') console.error('Redirect error:', e);
+  
+  provider.setCustomParameters({
+  prompt: 'select_account'
 });
 
+  if (isIOSPWA()) {
+    sessionStorage.setItem('iosPwaLoginInProgress', '1');
+
+    auth.signInWithRedirect(provider).catch(e => {
+      loginPending = false;
+      sessionStorage.removeItem('iosPwaLoginInProgress');
+      alert('שגיאה בכניסה: ' + e.message);
+    });
+    return;
+  }
+
+  auth.signInWithPopup(provider)
+    .catch(e => {
+      if (
+        e.code !== 'auth/cancelled-popup-request' &&
+        e.code !== 'auth/popup-closed-by-user'
+      ) {
+        alert('שגיאה בכניסה: ' + e.message);
+      }
+    })
+    .finally(() => {
+      loginPending = false;
+    });
+}
+
+async function initAuth() {
+  try {
+    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    await auth.getRedirectResult();
+  } catch (e) {
+    if (e.code !== 'auth/no-current-user') {
+      console.error('Redirect error:', e);
+    }
+  } finally {
+    loginPending = false;
+    authResolved = true;
+  }
+
+  auth.onAuthStateChanged(user => {
+    currentUser = user;
+
+    if (user) {
+      sessionStorage.removeItem('iosPwaLoginInProgress');
+      showApp(user);
+      subscribeToUserData(user.uid);
+      return;
+    }
+
+    const loginInProgress = sessionStorage.getItem('iosPwaLoginInProgress') === '1';
+
+    if (isIOSPWA() && loginInProgress) {
+      setTimeout(() => {
+        if (!auth.currentUser) {
+          sessionStorage.removeItem('iosPwaLoginInProgress');
+          showLogin();
+        }
+      }, 1500);
+      return;
+    }
+
+    showLogin();
+  });
+}
+
 function signOutUser() {
-  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  if (unsubscribe) {
+    unsubscribe();
+    unsubscribe = null;
+  }
+  sessionStorage.removeItem('iosPwaLoginInProgress');
   auth.signOut();
 }
 
-auth.onAuthStateChanged(user => {
-  currentUser = user;
-  if (user) {
-    showApp(user);
-    subscribeToUserData(user.uid);
-  } else {
-    showLogin();
-  }
-});
-
 function showLogin() {
   document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app-wrap').style.display    = 'none';
-  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  document.getElementById('app-wrap').style.display = 'none';
+  if (unsubscribe) {
+    unsubscribe();
+    unsubscribe = null;
+  }
 }
+
 function showApp(user) {
   document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-wrap').style.display    = 'block';
+  document.getElementById('app-wrap').style.display = 'block';
   document.getElementById('user-name').textContent = user.displayName || user.email;
+
   const av = document.getElementById('user-avatar');
   av.src = user.photoURL || '';
   av.style.display = user.photoURL ? 'block' : 'none';
 }
+
+initAuth();
 
 // ---------- Firestore real-time listener ----------
 function subscribeToUserData(uid) {
