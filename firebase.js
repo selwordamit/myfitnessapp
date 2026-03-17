@@ -85,6 +85,16 @@ function showApp(user) {
   const av = document.getElementById('user-avatar');
   av.src = user.photoURL || '';
   av.style.display = user.photoURL ? 'block' : 'none';
+
+  // Greeting with first name
+  const firstName = (user.displayName || '').split(' ')[0] || '';
+  const greetEl = document.getElementById('header-greeting');
+  if (firstName) {
+    const hour = new Date().getHours();
+    const timeGreet = hour < 12 ? 'בוקר טוב' : hour < 17 ? 'צהריים טובים' : hour < 21 ? 'ערב טוב' : 'לילה טוב';
+    greetEl.textContent = `${timeGreet}, ${firstName} 👋`;
+    greetEl.style.display = 'block';
+  }
 }
 
 // ---------- Firestore real-time listener ----------
