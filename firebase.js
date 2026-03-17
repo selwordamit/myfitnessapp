@@ -28,16 +28,19 @@ function signInWithGoogle() {
   if (loginPending) return;
   loginPending = true;
 
-  // כש-PWA מותקן ב-standalone mode, popup לא עובד — נשתמש ב-redirect
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-                    || window.navigator.standalone === true;
-
   const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
 
-  if (isStandalone) {
+  // iOS Safari (PWA ו-browser רגיל) לא תומך ב-popup — חייבים redirect
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+  if (isIOS) {
+    // שמור דגל ב-sessionStorage לפני ה-redirect
+    sessionStorage.setItem('pendingLogin', '1');
     auth.signInWithRedirect(provider).catch(e => {
       loginPending = false;
-      console.error(e);
+      sessionStorage.removeItem('pendingLogin');
+      alert('שגיאה בכניסה: ' + e.message);
     });
   } else {
     auth.signInWithPopup(provider)
@@ -51,10 +54,12 @@ function signInWithGoogle() {
   }
 }
 
-// טיפול בחזרה מ-redirect (PWA)
+// טיפול בחזרה מ-redirect (iOS)
 auth.getRedirectResult().then(result => {
+  sessionStorage.removeItem('pendingLogin');
   if (result && result.user) { /* onAuthStateChanged יטפל */ }
 }).catch(e => {
+  sessionStorage.removeItem('pendingLogin');
   if (e.code !== 'auth/no-current-user') console.error('Redirect error:', e);
 });
 
@@ -85,16 +90,6 @@ function showApp(user) {
   const av = document.getElementById('user-avatar');
   av.src = user.photoURL || '';
   av.style.display = user.photoURL ? 'block' : 'none';
-
-  // Greeting with first name
-  const firstName = (user.displayName || '').split(' ')[0] || '';
-  const greetEl = document.getElementById('header-greeting');
-  if (firstName) {
-    const hour = new Date().getHours();
-    const timeGreet = hour < 12 ? 'בוקר טוב' : hour < 17 ? 'צהריים טובים' : hour < 21 ? 'ערב טוב' : 'לילה טוב';
-    greetEl.textContent = `${timeGreet}, ${firstName} 👋`;
-    greetEl.style.display = 'block';
-  }
 }
 
 // ---------- Firestore real-time listener ----------
