@@ -1,8 +1,7 @@
 {
   "name": "המסע שלי",
   "short_name": "המסע שלי",
-  "start_url": "/index.html",
-  "scope": "/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0d0f14",
   "theme_color": "#0d0f14",
